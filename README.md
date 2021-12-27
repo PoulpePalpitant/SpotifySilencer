@@ -1,15 +1,11 @@
 # Spotify-silencer
 Ce programme vise à remplacer les publicités audio de la version gratuite de Spotify pas des sons paisibles et agréables ♥
 
-#     __  __                 _ __                         __       
-#    / / / /___ _      __   (_) /_   _      ______  _____/ /_______
-#   / /_/ / __ \ | /| / /  / / __/  | | /| / / __ \/ ___/ //_/ ___/
-#  / __  / /_/ / |/ |/ /  / / /_    | |/ |/ / /_/ / /  / ,< (__  ) 
-# /_/ /_/\____/|__/|__/  /_/\__/    |__/|__/\____/_/  /_/|_/____/  
-                                                                 
-
+## Comment ça marche?
 Pour savoir quand muter l'application, on utilise simplement le titre de la fenêtre.
-Quand une chanson joue, la fenêtre spotify change toujours son titre pour ce format : nom_artist - nom_chanson
+Quand une chanson joue, la fenêtre spotify change toujours son titre pour ce format
+- nom_artist - nom_chanson
+
 On utilise donc la string " - " pour détecter à quel moment muter la fenêtre.
 
 # Idées pour optimisation:
@@ -27,7 +23,7 @@ On utilise donc la string " - " pour détecter à quel moment muter la fenêtre.
 
 
 Dependencys: 
- pygames 	-> Audio player
- pycaw 		-> Manipulation mixer windows
- pydub  v0.25.1 -> Conversion mp3
- ffmpeg-python // Conversion mp3. Installé sur le path
+ - pygames 	-> Audio player
+ - pycaw 		-> Manipulation mixer windows
+ - pydub  v0.25.1 -> Conversion mp3
+ - ffmpeg-python // Conversion mp3. Installé sur le path
