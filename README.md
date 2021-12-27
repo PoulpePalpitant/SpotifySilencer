@@ -1,26 +1,33 @@
 # Spotify-silencer
-Ce programme vise à muter la version gratuite de Spotify quand l'application fait jouer des publicités
+Ce programme vise à remplacer les publicités audio de la version gratuite de Spotify pas des sons paisibles et agréables ♥
 
-Pour générer un EXE avec un fichier python:
+#     __  __                 _ __                         __       
+#    / / / /___ _      __   (_) /_   _      ______  _____/ /_______
+#   / /_/ / __ \ | /| / /  / / __/  | | /| / / __ \/ ___/ //_/ ___/
+#  / __  / /_/ / |/ |/ /  / / /_    | |/ |/ / /_/ / /  / ,< (__  ) 
+# /_/ /_/\____/|__/|__/  /_/\__/    |__/|__/\____/_/  /_/|_/____/  
+                                                                 
 
-pip install pyinstaller
+Pour savoir quand muter l'application, on utilise simplement le titre de la fenêtre.
+Quand une chanson joue, la fenêtre spotify change toujours son titre pour ce format : nom_artist - nom_chanson
+On utilise donc la string " - " pour détecter à quel moment muter la fenêtre.
 
-En ligne de commande
-	pyinstaller monfichier.py
-	pyinstaller --clean monfichier.py		// pas de temp files
-	pyinstaller --clean monfichier.py -F		// 1 seul file
-	pyinstaller -F --add-binary "C:\Users\Moi\AppData\Local\Programs\Python\Python39.dll" myscript.py // ajoute le path de ta version de python
+# Idées pour optimisation:
+- Différencier quand l'application est en pause et quand elle fait joué une publicité. 
+- Faire 1 seul petit bip (ou autre jolie son) quand la fenêtre est pausé pour signifier qu'une playlist est terminé.
+- Faire un launcher custom qui lance Spotify et SpotifySilencer en même temps
+- Minimiser l'application dans le tray windows
+
+- Faire un GUI/CLI. Ceci permettrait de:
+	- Éditer le dossier audio pour ajouter et supprimer des chansons
+	- Enable/disable le SpotifySilencer
+	- Ironiquement pouvoir muter le SpotifySilencer
+	- Création de playlist à faire jouer durant les pubs
+	- Donner l'option de pouvoir launcher ce programme au lancement de windows
 
 
-
-ou utiliser ça https://stackoverflow.com/questions/41570359/how-can-i-convert-a-py-to-exe-for-python
-
-
-libs installed:
-pip install pipwin // bad
-pipwin install pyaudio // bad
-
-
-pip install pygames // ok
-pip install pydub  v0.25.1 // ok
-pip install ffmpeg-python // to convert mp3
+Dependencys: 
+ pygames 	-> Audio player
+ pycaw 		-> Manipulation mixer windows
+ pydub  v0.25.1 -> Conversion mp3
+ ffmpeg-python // Conversion mp3. Installé sur le path
