@@ -2,58 +2,68 @@
 
 import os   # File manip
 import random
-from math import fabs, trunc
-from time import (sleep, time)
+from time import (sleep, )
 
 # Mute windows
-import pygetwindow as gw
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-
-# import simpleaudio as sa
+import pygetwindow as gw    # Pour trouver la fenêtre spotify
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume    # Manipulation avec le mixer windows
 from pydub import AudioSegment  # Conversion en mp3
 from pygame import mixer        # audio player
+import atexit 
 
+#     __  __                 _ __                         __       
+#    / / / /___ _      __   (_) /_   _      ______  _____/ /_______
+#   / /_/ / __ \ | /| / /  / / __/  | | /| / / __ \/ ___/ //_/ ___/
+#  / __  / /_/ / |/ |/ /  / / /_    | |/ |/ / /_/ / /  / ,< (__  ) 
+# /_/ /_/\____/|__/|__/  /_/\__/    |__/|__/\____/_/  /_/|_/____/  
+                                                                 
 
-"""
-Dependencys: Downloader ffmpeg et installer sur le path
-pip install p
-"""
-
-# HOW IT WORKS:
 # Pour savoir quand muter l'application, on utilise simplement le titre de la fenêtre.
-# Si le nom de la fenêtre est 'Spotify Free' ou 'Advertisement', ça veut dire que spotify est en mode pause ou qu'une publicité joue.
-# Il semblerait qu'avoir le focus sur le fenêtre quand une publicité joue change parfois le nom de la fenêtre pour 'Spotify Free' à la place.
-# Autrement, si la fenêtre fait jouer de la musique, le titre de la fenêtre change pour le nom de la chanson et l'artiste
-# Il peut aussi arriver qu'une publicité change le titre de la fenêtre pour un autre nom quand c'est une pub. Dans ces cas, le silencer ne fonctionnera pas....
+# Quand une chanson joue, la fenêtre spotify change toujours son titre pour ce format : nom_artist - nom_chanson
+# On utilise donc la string " - " pour détecter à quel moment muter la fenêtre.
 
-# Idées pour rendre ça plus nice:
-# Faire 1 seul petit bip (ou autre jolie son) quand la fenêtre est pausé pour signifier qu'une playlist est terminé.
-# Remplacer le son de la pub par autres affaires custom, aux choix de l'utilisateur
-# Trouver un moyen de détecter si spotify en mode pause, pour ne pas faire jouer du beat si c'est le cas 
-# - qu'aucun son ne sort de la fenêtre?
-# Ton programme est confu quand ya deux mixer(pub audio et pub video)
-
-# Si tu veux que le script ne génère pas de console, même après la génération du fichier exe, change l'extension pour .pyw
 # --------------------------------------------------------------------------------------------------------------------------------------- --- -
 
-def GetDaMusica():
-    musicaDirectori = os.getcwd() + "\\audio\\"
-    daSong = random.choice(os.listdir(musicaDirectori))
-    daPath = musicaDirectori + daSong
-    return daPath
 
-def ExtractFileExtension(path):
+
+
+
+
+possible_window_names = ['Spotify Free', 'Advertisement', 'Spotify']
+audio_directory = os.getcwd() + "\\audio\\"
+
+
+
+def get_random_file_path(directory):
+    """
+    Retourne le chemin d'un fichier random dans un dossier
+    """
+
+    file = random.choice(os.listdir(directory))
+    path = directory + file
+    return path
+
+
+def extract_file_extension(path):
+    """
+    Retourne le nom de l'extension d'un fichier(sans le point)
+    """
     format = os.path.splitext(path)[1]
-    format = ''.join(format.split('.', 1))  # enlève le tit point
+    format = ''.join(format.split('.', 1))
     return format
 
-def ConvertSongToMp3(directory, fileName):
-    format = ExtractFileExtension(fileName)
+
+def convert_song_to_mp3(directory, fileName):
+    """
+    Convertie un fichier audio en format mp3. 
+    Ceci détruit le fichier original.
+    """
+    format = extract_file_extension(fileName)
     path = directory + fileName
 
     if format == "mp3":
-        return 
-    
+        return
+
     print("Converting \"" + fileName + "\" to mp3")
 
     audio = None
@@ -71,31 +81,48 @@ def ConvertSongToMp3(directory, fileName):
         audio = AudioSegment.from_file(path, format)
     elif format == "m4a":
         audio = AudioSegment.from_file(path, format)
-    
+
     if audio:
         songNameWithoutExtension = os.path.splitext(path)[0]
         audio.export(songNameWithoutExtension + ".mp3", format="mp3")
         os.remove(path)
     else:
-        print("File format couldn't be converted to mp3")
-    
-def ConvertSongsToMp3(directory):
-    print("Converting all audio files to mp3. This may take awhile...")
+        print(f'{fileName} couldn\'t be converted to mp3')
+
+
+def convert_all_songs_to_mp3(directory):
+    """
+    Convertit tout les fichiers se trouvant dans le dossier audio
+    en format mp3. 
+    """
     progressCallback = None
 
+    print("Converting all audio files to mp3. This may take awhile...")
     for f in os.listdir(directory):
-        ConvertSongToMp3(directory, f)
-    
+        convert_song_to_mp3(directory, f)
+
     print("Files are done!")
-    
-def FindSpotifyWindow():
-    for i in range(2):
-        if i % 2 == 0:
-            # Retourne une liste de fenêtre avec ce nom
-            spotify = gw.getWindowsWithTitle('Spotify Free')
-        else:
-            # Les deux noms faciles à trouver
-            spotify = gw.getWindowsWithTitle('Advertisement')
+
+
+def find_spotify_window():
+    """
+    Trouve l'application spotify à partir du nom de sa fenêtre. Le nom de la fenêtre 
+    change selon l'état de l'application
+    Lorsque une chanson joue:
+        NomArtiste - Chanson
+
+    Pub audio/vidéo:
+        Advertisement
+        Spotify Free    
+        Une string custom provenant de la compagnie
+
+    Pause:
+        Spotify
+        Spotify Free
+    """
+    for name in possible_window_names:
+        # Retourne une liste de fenêtre avec ce nom
+        spotify = gw.getWindowsWithTitle(name)
 
         if spotify != []:
             print('Fenêtre spotté!')
@@ -105,9 +132,13 @@ def FindSpotifyWindow():
     return None
 
 
-def FindVolumeControl():
+def find_spotify_volume_control():
+    """
+    Trouve le contrôleur de volume de spotify dans le mixer windows.
+    WARNING: Ce contrôleur ne peut apparaître que si l'application à produit du son. 
+    Il faut donc laisser l'app jouer de la musique au moins une fois pour le trouver
+    """
     volumControl = id = None
-    
     sessions = AudioUtilities.GetAllSessions()
     for s in sessions:
         if s.Process:
@@ -116,7 +147,6 @@ def FindVolumeControl():
                 id = s.ProcessId
                 break
 
-    # Spotify n'apparaît dans le mixer de windows qu'uniquement si elle à produit du son.
     if volumControl == None:
         print("Volume de spotify non détecté. Pèse sur Play et je vais le trouver :)")
     else:
@@ -124,34 +154,31 @@ def FindVolumeControl():
 
     return volumControl, id
 
-def MuteVideoAdsIfPlaying(id):
-    volumControlForVideoAds = None    
+
+def mute_video_ads_if_playing(id):
+    """
+    Si une pub vidéo joue, un deuxième process va apparaître dans le mixer windows. 
+    On mute celui-ci qu'une seule fois 
+    """
+    volumControlForVideoAds = None
     sessions = AudioUtilities.GetAllSessions()
-    
+
     for s in sessions:
         if s.Process:
             if s.Process.name() == 'Spotify.exe':
                 if s.ProcessId != id:
-                   volumControlForVideoAds = s.SimpleAudioVolume
-                   break   
+                    volumControlForVideoAds = s.SimpleAudioVolume
+                    break
 
     if volumControlForVideoAds == None:
         return False
 
-    volumControlForVideoAds.SetMute(1,None)
+    volumControlForVideoAds.SetMute(1, None)
     print("Volume de publicité vidéo spotté, et muté à tout jamais")
     return True
 
 
-def IsAdPlaying(windowTitle):
-    possibleNames = ["Advertisement", "Spotify", "Spotify Free"]
-
-    for n in possibleNames:
-        if windowTitle == n:  # Pas de chanson qui joue
-            return True
-    return False
-
-def SongPlaying(windowTitle):
+def is_song_playing(windowTitle):
     """
         Quand une chanson joue, le format du windowTitle est toujours le même:
         Artist - Song name
@@ -162,42 +189,64 @@ def SongPlaying(windowTitle):
     return theUltimateCharacter in windowTitle
 
 
+
+
+def exit_handler():
+    """
+    Unmute spotify quand on ferme l'application
+    """
+    volumControl.SetMute(0, None)   
+
+
+
 if __name__ == '__main__':
-    spotifyWindow = FindSpotifyWindow()
-    volumControl, spotifyProcessId = FindVolumeControl()  # Va permettre de muté Spotify dans le mixer de windows
-    videoAdsAreMuted = False  
+    atexit.register(exit_handler)
+    spotifyWindow = find_spotify_window()
+
+    # Va permettre de muté Spotify dans le mixer de windows
+    volumControl, spotifyProcessId = find_spotify_volume_control()
+    videoAdsAreMuted = False
     mixer.init()
-    
-    # Converti tout les fichiers du folder audio en mp3, si possible
-    ConvertSongsToMp3((os.getcwd() + "\\audio\\"))
+
+    # Convertie tout les fichiers du folder audio en mp3, si possible
+    convert_all_songs_to_mp3((audio_directory))
 
     while(True):
+        """
+        Il faut d'abord détecter la fenêtre spotify et son volume dans le mixer
+        windows. Pour ce faire, il faut que l'application est joué de l'audio
+        au moins 1 fois et que le titre de la fenêtre soit un de ceux présent 
+        dans le dict "possible_window_names"
+        """
         if spotifyWindow == None:
-            spotifyWindow = FindSpotifyWindow()
+            spotifyWindow = find_spotify_window()
 
         if volumControl == None:
-            volumControl, spotifyProcessId = FindVolumeControl()
+            volumControl, spotifyProcessId = find_spotify_volume_control()
 
+        if volumControl is None or spotifyWindow is None:
+            sleep(1)
+            continue
 
-        if volumControl != None and spotifyWindow != None:
-            if not SongPlaying(spotifyWindow.title):  # Pas de chanson qui joue, alors ad ou pause
-                if videoAdsAreMuted == False:
-                    videoAdsAreMuted = MuteVideoAdsIfPlaying(spotifyProcessId)
+        # Pas de chanson qui joue, alors ad ou pause
+        if is_song_playing(spotifyWindow.title):
+            if volumControl.GetMute() == True:
+                volumControl.SetMute(0, None)   # unmute
+                print("--- Intermission ended ---\n")
+                print(f'Song playing : {spotifyWindow.title}')
+                mixer.music.fadeout(1000)
+        else:
+            if videoAdsAreMuted == False:
+                videoAdsAreMuted = mute_video_ads_if_playing(spotifyProcessId)
 
-                if volumControl.GetMute() == False:
-                    volumControl.SetMute(1, None)   # mute
-                    print("Ad playing, or paused...")
-                    if spotifyWindow.title != 'Spotify Free':  # Fais pas jouer de beat au cas où c'était un pause
-                        intermission = GetDaMusica()
-                        mixer.music.load(intermission)
-                        mixer.music.play()
-                        print("--- Playing intermission ---\n")
-                        print(f'"---{intermission}---\n"')
-            else:
-                if volumControl.GetMute() == True:
-                    volumControl.SetMute(0, None)   # unmute
-                    print("--- Intermission ended ---\n")
-                    print("Song playing")
-                    mixer.music.fadeout(1000)
-
+            if volumControl.GetMute() == False:
+                volumControl.SetMute(1, None)   # mute
+                print("Ad playing, or paused...")
+                if spotifyWindow.title != 'Spotify Free':  # Fais pas jouer de beat au cas où c'était un pause
+                    intermission = get_random_file_path(audio_directory)
+                    mixer.music.load(intermission)
+                    mixer.music.play()
+                    print(f'--- Playing intermission : {intermission} ---\n')
+        
         sleep(1.5)
+        
