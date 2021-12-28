@@ -16,8 +16,8 @@ On utilise donc la string " - " pour détecter à quel moment muter la fenêtre.
 
 - Faire un GUI/CLI. Ceci permettrait de:
 	- Éditer le dossier audio pour ajouter et supprimer des chansons
-	- Enable/disable le SpotifySilencer
-	- Ironiquement pouvoir muter le SpotifySilencer
+	- Pouvoir Enable/disable le SpotifySilencer
+	- Contrôle volume et (ironiquement) de muter le SpotifySilencer
 	- Création de playlist à faire jouer durant les pubs
 	- Donner l'option de pouvoir launcher ce programme au lancement de windows
 

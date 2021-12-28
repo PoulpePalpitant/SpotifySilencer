@@ -9,9 +9,7 @@ import pygetwindow as gw    # Pour trouver la fenêtre spotify
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume    # Manipulation avec le mixer windows
 from pydub import AudioSegment  # Conversion en mp3
 from pygame import mixer        # audio player
-
-
-
+import atexit 
 
 #     __  __                 _ __                         __       
 #    / / / /___ _      __   (_) /_   _      ______  _____/ /_______
@@ -27,8 +25,13 @@ from pygame import mixer        # audio player
 # --------------------------------------------------------------------------------------------------------------------------------------- --- -
 
 
-possible_ad_names = ['Spotify Free', 'Advertisement', 'Spotify']
+
+
+
+
+possible_window_names = ['Spotify Free', 'Advertisement', 'Spotify']
 audio_directory = os.getcwd() + "\\audio\\"
+
 
 
 def get_random_file_path(directory):
@@ -117,7 +120,7 @@ def find_spotify_window():
         Spotify
         Spotify Free
     """
-    for name in possible_ad_names:
+    for name in possible_window_names:
         # Retourne une liste de fenêtre avec ce nom
         spotify = gw.getWindowsWithTitle(name)
 
@@ -136,7 +139,6 @@ def find_spotify_volume_control():
     Il faut donc laisser l'app jouer de la musique au moins une fois pour le trouver
     """
     volumControl = id = None
-
     sessions = AudioUtilities.GetAllSessions()
     for s in sessions:
         if s.Process:
@@ -187,7 +189,18 @@ def is_song_playing(windowTitle):
     return theUltimateCharacter in windowTitle
 
 
+
+
+def exit_handler():
+    """
+    Unmute spotify quand on ferme l'application
+    """
+    volumControl.SetMute(0, None)   
+
+
+
 if __name__ == '__main__':
+    atexit.register(exit_handler)
     spotifyWindow = find_spotify_window()
 
     # Va permettre de muté Spotify dans le mixer de windows
@@ -203,7 +216,7 @@ if __name__ == '__main__':
         Il faut d'abord détecter la fenêtre spotify et son volume dans le mixer
         windows. Pour ce faire, il faut que l'application est joué de l'audio
         au moins 1 fois et que le titre de la fenêtre soit un de ceux présent 
-        dans le dict "possible_ad_names"
+        dans le dict "possible_window_names"
         """
         if spotifyWindow == None:
             spotifyWindow = find_spotify_window()
@@ -211,7 +224,7 @@ if __name__ == '__main__':
         if volumControl == None:
             volumControl, spotifyProcessId = find_spotify_volume_control()
 
-        if volumControl is None and spotifyWindow is None:
+        if volumControl is None or spotifyWindow is None:
             sleep(1)
             continue
 
@@ -220,7 +233,7 @@ if __name__ == '__main__':
             if volumControl.GetMute() == True:
                 volumControl.SetMute(0, None)   # unmute
                 print("--- Intermission ended ---\n")
-                print('Song playing : f{spotifyWindow.title}')
+                print(f'Song playing : {spotifyWindow.title}')
                 mixer.music.fadeout(1000)
         else:
             if videoAdsAreMuted == False:
