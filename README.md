@@ -1,5 +1,5 @@
 # Spotify-silencer
-Ce programme vise à remplacer les publicités audio de la version gratuite de Spotify pas des sons paisibles et agréables ♥
+Ce programme vise à remplacer les publicités audio de la version gratuite de Spotify par des sons paisibles et agréables ♥
 
 ## Comment ça marche?
 Pour savoir quand muter l'application, on utilise simplement le titre de la fenêtre.
